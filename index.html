@@ -1,18 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard Pelaporan Peralatan Rusak – Pos Meteorologi 96745 Kemayoran</title>
   <style>
-    :root{--bg:#0038bc;--panel:#111827;--muted:#1f2937;--text:#e5e7eb;--text-dim:#9ca3af;--brand:#22d3ee;--accent:#34d399;--warn:#f59e0b;--danger:#f87171;--ok:#60a5fa;--ring:0 0 0 2px rgba(34,211,238,.35);--radius:14px}
+    :root{
+      --bg:#0038bc; --panel:#0b1220; --muted:#1f2937; --text:#e5e7eb; --text-dim:#9ca3af;
+      --brand:#22d3ee; --accent:#34d399; --warn:#f59e0b; --danger:#f87171; --radius:14px;
+      --ring: 0 0 0 2px rgba(34,211,238,.35);
+    }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;background:radial-gradient(1200px 600px at 20% -10%,rgba(34,211,238,.12),transparent),radial-gradient(1000px 500px at 120% 10%,rgba(16,185,129,.10),transparent),var(--bg);color:var(--text);overflow-x:hidden}
-    .container{max-width:1500px;margin:0 auto;padding:24px}
-    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
-    .title{display:flex;gap:14px;align-items:center}
-    .logo-bmkg{width:56px;height:56px;border-radius:50%;object-fit:cover;background:white;padding:4px;box-shadow:0 0 10px rgba(0,0,0,.2)}
+    body{
+      margin:0; font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(34,211,238,.12), transparent),
+                  radial-gradient(1000px 500px at 120% 10%, rgba(16,185,129,.10), transparent),
+                  var(--bg);
+      color:var(--text); overflow-x:hidden;
+    }
+    .container{max-width:1500px; margin:0 auto; padding:24px}
+    header{display:flex; align-items:center; gap:14px; margin-bottom:18px}
+    .logo-bmkg{width:56px;height:56px;border-radius:50%;object-fit:cover;background:white;padding:4px;box-shadow:0 0 10px rgba(0,0,0,.15)}
     h1{font-size:20px;margin:0;font-weight:700}
     .subtitle{color:var(--text-dim);font-size:12px}
 
@@ -20,13 +29,11 @@
     @media(max-width:1200px){.grid{grid-template-columns:1fr}}
     .grid>.card{min-width:0}
 
-    .card{background:linear-gradient(180deg,rgba(17,24,39,.9),rgba(17,24,39,.75));border:1px solid rgba(148,163,184,.12);border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .card{background:linear-gradient(180deg, rgba(17,24,39,.95), rgba(17,24,39,.85)); border:1px solid rgba(148,163,184,.12); border-radius:var(--radius); box-shadow:0 10px 30px rgba(0,0,0,.25)}
     .card .head{padding:14px 16px;border-bottom:1px solid rgba(148,163,184,.12);display:flex;align-items:center;justify-content:space-between}
     .card .body{padding:18px}
 
-    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-    @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
-    .stat{padding:14px;border-radius:12px;background:linear-gradient(180deg,rgba(31,41,55,.6),rgba(31,41,55,.3));border:1px solid rgba(148,163,184,.15)}
+    .stat{padding:14px;border-radius:12px;background:linear-gradient(180deg, rgba(31,41,55,.6), rgba(31,41,55,.3)); border:1px solid rgba(148,163,184,.12)}
     .stat .k{font-size:12px;color:var(--text-dim)}
     .stat .v{font-size:22px;font-weight:800;margin-top:4px}
 
@@ -34,55 +41,36 @@
     @media(max-width:768px){form{grid-template-columns:1fr}}
     .form-group{display:flex;flex-direction:column}
     label{font-size:13px;color:var(--text-dim);margin-bottom:6px}
-    input,select,textarea{width:100%;background:#0b1220;color:var(--text);border:1px solid rgba(148,163,184,.18);padding:12px 14px;border-radius:10px;outline:none;transition:.2s;font-size:14px;min-height:42px}
+    input, select, textarea{width:100%;background:#0b1220;color:var(--text);border:1px solid rgba(148,163,184,.18);padding:12px 14px;border-radius:10px;outline:none;transition:.15s;font-size:14px;min-height:42px}
     textarea{min-height:120px;resize:vertical}
     input:focus,select:focus,textarea:focus{box-shadow:var(--ring);border-color:var(--brand)}
-    .full{grid-column:1 / -1}
+    .full{grid-column:1/-1}
     .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
-    button{background:var(--brand);color:#06262b;border:0;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;transition:.15s;box-shadow:0 6px 20px rgba(34,211,238,.25)}
-    button.secondary{background:#0b1220;color:#e5e7eb;border:1px solid rgba(148,163,184,.25);box-shadow:none}
-    button.warn{background:var(--warn);color:#231b07}
-    button.warn:hover{background:#fbbf24}
-    button.danger{background:var(--danger);color:#2b0a0a}
-    button.danger:hover{background:#ef4444}
-    button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
-
-    .toolbar{display:flex;gap:8px;flex-wrap:wrap}
-    .toolbar .group{display:flex;gap:8px}
-
+    button{background:var(--brand);color:#06262b;border:0;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer}
+    button.secondary{background:#0b1220;color:var(--text);border:1px solid rgba(148,163,184,.12)}
     .table-wrap{overflow:auto;border:1px solid rgba(148,163,184,.12);border-radius:12px;min-width:0}
-    table{width:100%;min-width:0;border-collapse:separate;border-spacing:0}
+    table{width:100%;border-collapse:separate;border-spacing:0;min-width:0}
     thead th{position:sticky;top:0;background:#0c1425;z-index:1}
     th,td{font-size:13px;text-align:left;padding:10px 12px;border-bottom:1px solid rgba(148,163,184,.12)}
-    .desc-cell{white-space:pre-wrap;word-break:normal;overflow-wrap:break-word;max-width:100%;line-height:1.4}
-    .id-cell{white-space:nowrap;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
-    tr:hover td{background:rgba(148,163,184,.05)}
+    .desc-cell{white-space:normal;word-break:break-word;max-width:100%}
+    .id-cell{white-space:nowrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
     .pill{padding:4px 8px;font-size:12px;border-radius:999px;display:inline-block;border:1px solid rgba(148,163,184,.2)}
-    .pill.low{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35)}
-    .pill.med{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.35)}
-    .pill.high{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35)}
-    .pill.crit{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.35)}
-    .pill.status-open{background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.35)}
-    .pill.status-progress{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35)}
-    .pill.status-done{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35)}
     .footer{margin-top:16px;font-size:12px;color:var(--text-dim)}
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="title">
-        <img src="logo-bmkg.png" alt="Logo BMKG" class="logo-bmkg">
-        <div>
-          <h1>Dashboard Pelaporan Peralatan Rusak</h1>
-          <div class="subtitle">Pos Meteorologi <strong>96745 Kemayoran</strong> • Lokasi: Jakarta • Database: Google Sheets (WebApp)</div>
-        </div>
+      <img src="logo-bmkg.png" alt="Logo BMKG" class="logo-bmkg" />
+      <div>
+        <h1>Dashboard Pelaporan Peralatan Rusak</h1>
+        <div class="subtitle">Pos Meteorologi <strong>96745 Kemayoran</strong> • Lokasi: Jakarta • Database: Google Sheets (WebApp)</div>
       </div>
     </header>
 
     <section class="card" style="margin-bottom:16px">
       <div class="body">
-        <div class="stats">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
           <div class="stat"><div class="k">Total Laporan</div><div class="v" id="st-total">0</div></div>
           <div class="stat"><div class="k">Status: Dilaporkan</div><div class="v" id="st-open">0</div></div>
           <div class="stat"><div class="k">Status: Diproses</div><div class="v" id="st-progress">0</div></div>
@@ -169,49 +157,10 @@
       <section class="card">
         <div class="head">
           <strong>Data Laporan</strong>
-          <div class="toolbar">
-            <div class="group">
-              <select id="filterEquip">
-                <option value="">Semua Alat</option>
-                <option>Termometer Bola Kering</option>
-                <option>Termometer Bola Basah</option>
-                <option>Termometer Digital</option>
-                <option>Termometer Minimum</option>
-                <option>Termometer Maksimum</option>
-                <option>Panci Penguapan</option>
-                <option>Still well dan hook gauge</option>
-                <option>Termometer Apung</option>
-                <option>Cup counter anemometer</option>
-                <option>Penakar Hujan Tipe Observatorium</option>
-                <option>Penakar Hujan Tipe Hellman</option>
-                <option>Campbell Stokes</option>
-                <option>Aktinograf Mingguan</option>
-                <option>Aktinograf Harian</option>
-                <option>Termometer tanah</option>
-                <option>AWS</option>
-                <option>Barometer Digital</option>
-              </select>
-              <select id="filterStatus">
-                <option value="">Semua Status</option>
-                <option value="OPEN">Dilaporkan</option>
-                <option value="IN_PROGRESS">Diproses</option>
-                <option value="DONE">Selesai</option>
-              </select>
-              <select id="filterSeverity">
-                <option value="">Semua Keparahan</option>
-                <option value="LOW">Rendah</option>
-                <option value="MED">Sedang</option>
-                <option value="HIGH">Tinggi</option>
-                <option value="CRIT">Kritis</option>
-              </select>
-            </div>
-            <div class="group">
-              <input id="search" placeholder="Cari teks… (alat, pelapor, deskripsi)" />
-            </div>
-            <div class="group">
-              <button type="button" class="warn" id="btnExportCSV">Download CSV</button>
-              <button type="button" class="danger" id="btnClearAll" title="Hapus semua data (lihat keterangan)">Kosongkan DB</button>
-            </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="search" placeholder="Cari teks… (alat, pelapor, deskripsi)" style="padding:10px 12px;border-radius:10px;background:#0b1220;color:var(--text);border:1px solid rgba(148,163,184,.12)"/>
+            <button class="secondary" id="btnExportCSV">Download CSV</button>
+            <button class="secondary" id="btnClearAll">Kosongkan DB</button>
           </div>
         </div>
         <div class="body">
@@ -236,194 +185,193 @@
       </section>
     </div>
 
-    <div class="footer">Database: Google Sheets via Apps Script. Ekspor: CSV.</div>
+    <div class="footer">Database disimpan: Google Sheets via WebApp. Ekspor CSV tersedia.</div>
   </div>
 
   <script>
-    // ========== Konstanta & utilitas ==========
-    const API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLimv6ZFltjyk4hZ0ZSff71PVW3ojlyCYX80gnqfNEa8Z5RkauwYDQotxWHE3C8qedXfs73I1Peg7c7lC8wRU-G9IiSIlWOGtjjhvDhxPXzby8ADBJ3SwPRTDBXB8-SpQV6ELK6v2pks4Vwvh3uQBUoMwoX9Fnx59Qjdvyp4BHhs5A9Lcp5v_hbBSCCyEWxhWMpgEpBWNeWu3AOGQKkKceVHFQZvSeKvXi4ZIndO1nRulEUMZSJcp1uW8feGRuLS9iEo1faI9fJ3kbtl69M4C4a-SvqZsQ&lib=Msa7bg36DVvqnS4M4WYucVYANPurok1w9';
+    // ===== UBAH DI SINI: MASUKKAN URL GOOGLEUSERCONTENT (hasil redirect /exec) =====
+    // Contoh: 'https://script.googleusercontent.com/macros/echo?user_content_key=...'
+    const API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjwhNkifYC0jOYZx6klR6PYM3B9yFvZ08bcwX8dTYWTHtKf54HriiowtileaZLn2ughVL8USxmI_P3I1uYGuwkQ6xocpwaxXEVXKc_0vol2rvJHPpwa3eh0-zL3KKVmqM5NdDr8mx0jSkeLpqsK_vbDv_-J2H-HwCqTcTMTb9NBoz3KQZslAkbgnbQWN5LKUhEA9QCDKcMN8fu3qb9Vw3jF6Nph-tE-ZnYmro2VTByAqPHl9hArisbglUOuxfW5MA7Dz-KJ77GPSOWHA2oTq5SOP3jjew&lib=Msa7bg36DVvqnS4M4WYucVYANPurok1w9';
+
+    const DB_KEY = 'equipReports96745_local'; // fallback local key (tidak dipakai saat pakai sheet)
     const LOCATION = 'Pos Meteorologi 96745 Kemayoran';
-    const $ = (q) => document.querySelector(q);
+    const $ = q => document.querySelector(q);
 
     function uid(){ return 'RPT-' + Math.random().toString(36).slice(2,6).toUpperCase() + '-' + Date.now().toString(36).toUpperCase(); }
-    function fmtDate(v){ if(!v) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(v)){ const [y,m,d]=v.split('-'); return d+'/'+m+'/'+y } try{return new Date(v).toLocaleDateString('id-ID')}catch{return String(v)} }
-    function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-    function escJs(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g, "\\'"); }
-    function severityPill(s){ const map={LOW:['Rendah','low'],MED:['Sedang','med'],HIGH:['Tinggi','high'],CRIT:['Kritis','crit']}; const [t,c]=map[s]||[s,'']; return `<span class="pill ${c}">${escHtml(t)}</span>`; }
-    function statusPill(s){ const map={OPEN:['Dilaporkan','status-open'],IN_PROGRESS:['Diproses','status-progress'],DONE:['Selesai','status-done']}; const [t,c]=map[s]||[s,'']; return `<span class="pill ${c}">${escHtml(t)}</span>`; }
+    function fmtDate(v){ if(!v) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(v)){ const [y,m,d]=v.split('-'); return d+'/'+m+'/'+y } try{ return new Date(v).toLocaleDateString('id-ID') }catch{ return String(v) } }
 
-    // DB global (diisi dari Google Sheets)
+    // ===== minimal rendering + state =====
     let DB = [];
 
-    // ========== FireApps: load & save via Apps Script WebApp ==========
+    function severityPill(s){ const map={LOW:['Rendah','low'],MED:['Sedang','med'],HIGH:['Tinggi','high'],CRIT:['Kritis','crit']}; const [t,c] = map[s]||[s,'']; return `<span class="pill ${c}">${t}</span>`; }
+    function statusPill(s){ const map={OPEN:['Dilaporkan','status-open'],IN_PROGRESS:['Diproses','status-progress'],DONE:['Selesai','status-done']}; const [t,c] = map[s]||[s,'']; return `<span class="pill ${c}">${t}</span>`; }
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+    // ===== Load data dari WebApp (GET) =====
     async function loadReportsFromSheet(){
       try{
-        const res = await fetch(API_URL, {method:'GET'});
-        if(!res.ok) throw new Error('HTTP '+res.status);
+        const res = await fetch(API_URL, { method: 'GET' });
+        if(!res.ok) throw new Error('Gagal memuat data: '+res.status);
         const data = await res.json();
-        DB = Array.isArray(data) ? data.map(r=>({
-          id: (r['ID']||r.id||'')+'',
-          location: r['Lokasi']||r.location||LOCATION,
-          equipment: r['Nama Peralatan']||r.equipment||'',
-          dateFound: r['Tanggal Kejadian']||r.dateFound||'',
-          reporter: r['Pelapor']||r.reporter||'',
-          serial: r['Nomor/ID/Seri']||r.serial||'',
-          severity: r['Keparahan']||r.severity||'',
-          status: r['Status Penanganan']||r.status||'',
-          description: r['Deskripsi Kerusakan']||r.description||'',
-          notes: r['Catatan Tambahan']||r.notes||'',
-          createdAt: r['Dibuat Pada']||r.createdAt||'',
-          updatedAt: r['Diperbarui Pada']||r.updatedAt||''
-        })) : [];
-        render();
-      }catch(err){console.error('loadReportsFromSheet',err);DB=[];render();}
+        // data diharapkan array of objects sesuai header
+        DB = (Array.isArray(data) ? data : []).map(r => ({
+          id: r.ID || r.id || r.Id || '',
+          location: r.Lokasi || r.location || '',
+          equipment: r['Nama Peralatan'] || r.equipment || r.peralatan || '',
+          dateFound: r['Tanggal Kejadian'] || r.dateFound || r.tanggalKejadian || '',
+          reporter: r.Pelapor || r.reporter || '',
+          serial: r['Nomor/ID/Seri'] || r.serial || r.nomorSeri || '',
+          severity: r.Keparahan || r.severity || r.keparahan || '',
+          status: r['Status Penanganan'] || r.status || '',
+          description: r['Deskripsi Kerusakan'] || r.description || r.deskripsi || '',
+          notes: r['Catatan Tambahan'] || r.notes || r.catatan || '',
+          createdAt: r['Dibuat Pada'] || r.createdAt || '',
+          updatedAt: r['Diperbarui Pada'] || r.updatedAt || ''
+        }));
+      }catch(err){
+        console.warn('loadReports error', err);
+        DB = [];
+      }
+      render();
     }
 
-    // ===== Simpan laporan baru — kirim sebagai application/x-www-form-urlencoded =====
-// ===== Simpan laporan — kirim via hidden form -> target iframe (bypass CORS preflight) =====
-async function saveReportToSheet(report){
-  // pastikan API_URL adalah googleusercontent.com link hasil redirect
-  if(!API_URL) throw new Error('API_URL belum diisi');
-
-  // buat iframe tersembunyi jika belum ada
-  let iframe = document.getElementById('gs-iframe');
-  if(!iframe){
-    iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.id = 'gs-iframe';
-    document.body.appendChild(iframe);
-  }
-
-  // buat form sementara
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = API_URL;
-  form.target = 'gs-iframe';
-  form.style.display = 'none';
-  // gunakan enctype default (application/x-www-form-urlencoded)
-
-  // helper: tambah input
-  const add = (name, val) => {
-    const inp = document.createElement('input');
-    inp.type = 'hidden';
-    inp.name = name;
-    inp.value = val ?? '';
-    form.appendChild(inp);
-  };
-
-  // isi field sesuai Apps Script doPost expected names
-  add('lokasi', report.location || '');
-  add('peralatan', report.equipment || '');
-  add('tanggalKejadian', report.dateFound || '');
-  add('pelapor', report.reporter || '');
-  add('nomorSeri', report.serial || '');
-  add('keparahan', report.severity || '');
-  add('status', report.status || '');
-  add('deskripsi', report.description || '');
-  add('catatan', report.notes || '');
-
-  document.body.appendChild(form);
-
-  // Submit form -> data dikirim ke Google Apps Script; response masuk ke iframe (cross-origin)
-  form.submit();
-
-  // bersihkan form sementara
-  setTimeout(()=>{ form.remove(); }, 1000);
-
-  // Karena kita tidak bisa membaca response secara cross-origin,
-  // kita tunggu sejenak lalu reload DB via GET untuk melihat data terbaru.
-  setTimeout(async ()=>{
-    try{
-      await loadReportsFromSheet(); // akan memanggil doGet dan memuat data terbaru
-      alert('Laporan dikirim. Periksa tabel (jika belum muncul, tunggu sejenak).');
-    }catch(err){
-      console.error('Load after submit failed', err);
-      alert('Laporan dikirim (tidak bisa verifikasi respons). Cek Google Sheet.');
-    }
-  }, 1200); // delay 1.2s, bisa kamu naikkan jika koneksi lambat
-}
-
-
-    // ========== Render (mengandalkan DB global) ==========
+    // ===== Render tabel + stats =====
     function render(){
-      const tbody = document.querySelector('#table tbody');
-      const fe = $('#filterEquip').value.trim();
-      const fs = $('#filterStatus').value.trim();
-      const fv = $('#filterSeverity').value.trim();
-      const q  = $('#search').value.trim().toLowerCase();
-
-      const rows = DB.filter(r=>(!fe||r.equipment===fe)&&(!fs||r.status===fs)&&(!fv||r.severity===fv)&&(!q||(
-        String(r.equipment).toLowerCase().includes(q)||String(r.reporter||'').toLowerCase().includes(q)||String(r.description||'').toLowerCase().includes(q)
-      )));
-
-      tbody.innerHTML = rows.map(r=>{
-        const idDisplay = r.serial && String(r.serial).trim()?String(r.serial).trim():(r.id||'');
-        const descHtml = escHtml(String(r.description||'')).replace(/\r?\n/g,'<br>');
-        return `\n<tr>\n  <td>${escHtml(r.equipment)}</td>\n  <td>${fmtDate(r.dateFound)}</td>\n  <td>${escHtml(r.reporter||'')}</td>\n  <td>${severityPill(r.severity)}</td>\n  <td>${statusPill(r.status)}</td>\n  <td class="desc-cell">${descHtml}</td>\n  <td class="id-cell">${escHtml(idDisplay)}</td>\n  <td>\n    <button class="secondary" onclick="onEdit('${escJs(r.id)}')">Ubah</button>\n    <button class="danger" onclick="onDelete('${escJs(r.id)}')">Hapus</button>\n  </td>\n</tr>`;
+      const tbody = $('#table tbody');
+      tbody.innerHTML = DB.map(r => {
+        const idDisplay = r.serial && String(r.serial).trim() ? esc(r.serial) : esc(r.id);
+        const desc = esc(String(r.description||''));
+        return `<tr>
+          <td>${esc(r.equipment)}</td>
+          <td>${fmtDate(r.dateFound)}</td>
+          <td>${esc(r.reporter)}</td>
+          <td>${severityPill(r.severity)}</td>
+          <td>${statusPill(r.status)}</td>
+          <td class="desc-cell" title="${desc}">${desc}</td>
+          <td class="id-cell">${idDisplay}</td>
+          <td>
+            <button class="secondary" onclick="onEdit('${esc(r.id)}')">Ubah</button>
+            <button class="secondary" onclick="onDelete('${esc(r.id)}')">Hapus</button>
+          </td>
+        </tr>`;
       }).join('');
 
-      // stats
       $('#st-total').textContent = DB.length;
       $('#st-open').textContent = DB.filter(x=>x.status==='OPEN').length;
       $('#st-progress').textContent = DB.filter(x=>x.status==='IN_PROGRESS').length;
       $('#st-done').textContent = DB.filter(x=>x.status==='DONE').length;
-
-      // disable clear button if no data
-      const clearBtn = document.getElementById('btnClearAll'); if(clearBtn) clearBtn.disabled = (DB.length === 0);
     }
 
-    // ========== Form logic & handlers (integrasi with Apps Script) ==========
-    function todayYYYYMMDD(){const t=new Date();const y=t.getFullYear();const m=String(t.getMonth()+1).padStart(2,'0');const d=String(t.getDate()).padStart(2,'0');return `${y}-${m}-${d}`}
-
+    // ===== Form helpers & handlers =====
+    function todayYYYYMMDD(){ const t=new Date(),y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),d=String(t.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
     function clearForm(){ $('#reportForm').reset(); $('#editId').value=''; $('#formMode').textContent=''; $('#btnSubmit').textContent='Simpan Laporan'; $('#dateFound').value = todayYYYYMMDD(); }
+    function onEdit(id){ const r = DB.find(x=>x.id===id); if(!r) return; $('#equipment').value=r.equipment||''; $('#dateFound').value = r.dateFound || ''; $('#reporter').value=r.reporter||''; $('#serial').value=r.serial||''; $('#severity').value=r.severity||''; $('#status').value=r.status||'OPEN'; $('#description').value=r.description||''; $('#notes').value=r.notes||''; $('#editId').value=r.id; $('#formMode').textContent='Mode: Ubah (akan menjadi entri baru)'; $('#btnSubmit').textContent='Perbarui Laporan'; window.scrollTo({top:0,behavior:'smooth'}); }
+    function onDelete(id){ if(!confirm('Hapus laporan ini? (Hapus manual di Sheet jika API tidak mendukung delete)')) return; alert('Hapus belum diaktifkan di API WebApp. Hapus manual di Google Sheet.'); }
 
-    // attach reset
-    document.getElementById('btnReset').addEventListener('click', clearForm);
+    // ===== SIMPAN: submit via hidden form -> iframe (bypass CORS preflight) =====
+    async function saveReportToSheet(report){
+      if(!API_URL || API_URL.indexOf('script.googleusercontent.com')===-1){
+        alert('API_URL belum diset ke script.googleusercontent.com. Buka WebApp /exec -> copy URL hasil redirect (script.googleusercontent...) lalu paste di index.html pada const API_URL.');
+        throw new Error('API_URL invalid');
+      }
 
-    // submit handler: replace old local-storage save with POST to Apps Script
-    const form = document.getElementById('reportForm');
-    if(form._listener) form.removeEventListener('submit', form._listener);
-    form._listener = async function(e){
+      // buat iframe tersembunyi
+      let iframe = document.getElementById('gs-iframe');
+      if(!iframe){
+        iframe = document.createElement('iframe');
+        iframe.id = 'gs-iframe';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+      }
+
+      // buat form sementara
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = API_URL;
+      form.target = 'gs-iframe';
+      form.style.display = 'none';
+
+      const add = (name, val) => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = name;
+        inp.value = val ?? '';
+        form.appendChild(inp);
+      };
+
+      add('lokasi', report.location || '');
+      add('peralatan', report.equipment || '');
+      add('tanggalKejadian', report.dateFound || '');
+      add('pelapor', report.reporter || '');
+      add('nomorSeri', report.serial || '');
+      add('keparahan', report.severity || '');
+      add('status', report.status || '');
+      add('deskripsi', report.description || '');
+      add('catatan', report.notes || '');
+
+      document.body.appendChild(form);
+      form.submit();
+      setTimeout(()=>form.remove(), 1200);
+
+      // reload data via GET setelah delay
+      setTimeout(async ()=>{
+        await loadReportsFromSheet();
+        alert('Laporan dikirim. Jika belum muncul, tunggu beberapa detik lalu refresh.');
+      }, 1400);
+    }
+
+    // ===== form submit binding =====
+    document.getElementById('reportForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
       const data = {
+        id: $('#editId').value || uid(),
         location: LOCATION,
         equipment: $('#equipment').value.trim(),
-        dateFound: $('#dateFound').value,
+        dateFound: $('#dateFound').value || null,
         reporter: $('#reporter').value.trim(),
         serial: $('#serial').value.trim(),
         severity: $('#severity').value,
         status: $('#status').value,
-        description: $('#description').value,
-        notes: $('#notes').value.trim()
+        description: $('#description').value.trim(),
+        notes: $('#notes').value.trim(),
+        updatedAt: new Date().toISOString()
       };
-      if(!data.equipment||!data.dateFound||!data.reporter||!data.severity||!data.status||!data.description){ alert('Mohon lengkapi semua field wajib.'); return }
-      try{ await saveReportToSheet(data); await loadReportsFromSheet(); clearForm(); }catch(err){ console.error(err); alert('Gagal menyimpan laporan. Cek console.'); }
-    };
-    form.addEventListener('submit', form._listener);
-
-    // edit & delete handlers (delete not implemented server-side)
-    window.onEdit = function(id){ const r = DB.find(x=>String(x.id)===String(id)); if(!r) return; $('#equipment').value=r.equipment||''; $('#dateFound').value=r.dateFound||''; $('#reporter').value=r.reporter||''; $('#serial').value=r.serial||''; $('#severity').value=r.severity||''; $('#status').value=r.status||'OPEN'; $('#description').value=r.description||''; $('#notes').value=r.notes||''; $('#editId').value=r.id||''; $('#formMode').textContent='Mode: Ubah (akan disimpan sebagai entri baru)'; $('#btnSubmit').textContent='Perbarui Laporan'; window.scrollTo({top:0,behavior:'smooth'}); };
-
-    window.onDelete = function(id){ if(!confirm('Hapus laporan ini? (Fungsi delete belum aktif pada API — kalau mau saya tambahkan)')) return; alert('Fungsi hapus belum tersedia. Untuk sekarang hapus manual di Google Sheets.'); };
-
-    // ========== Export CSV (menggunakan DB array) ==========
-    function exportCSVFromDB(){ const cols=['ID','Lokasi','Nama Peralatan','Tanggal Kejadian','Pelapor','Nomor/ID/Seri','Keparahan','Status Penanganan','Deskripsi Kerusakan','Catatan Tambahan','Dibuat Pada','Diperbarui Pada']; const esc=v=> '"'+String(v??'').replace(/"/g,'""')+'"'; const rows=DB.map(r=>cols.map(c=>esc(rField(r,c)))); const csv=[cols.join(','),...rows.map(r=>r.join(','))].join('\n'); const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='laporan-peralatan-96745.csv'; a.click(); URL.revokeObjectURL(a.href);
-    }
-    function rField(r,c){ switch(c){ case 'ID': return r.id||''; case 'Lokasi': return r.location||''; case 'Nama Peralatan': return r.equipment||''; case 'Tanggal Kejadian': return r.dateFound||''; case 'Pelapor': return r.reporter||''; case 'Nomor/ID/Seri': return r.serial||''; case 'Keparahan': return r.severity||''; case 'Status Penanganan': return r.status||''; case 'Deskripsi Kerusakan': return r.description||''; case 'Catatan Tambahan': return r.notes||''; case 'Dibuat Pada': return r.createdAt||''; case 'Diperbarui Pada': return r.updatedAt||''; default: return '' } }
-    document.getElementById('btnExportCSV').addEventListener('click', exportCSVFromDB);
-
-    // Clear all note: since the Apps Script does not provide delete endpoint, inform user
-    document.getElementById('btnClearAll').addEventListener('click', ()=>{
-      if(!confirm('Kosongkan DB lokal? Ini hanya akan mengosongkan tampilan lokal, data asli tetap di Google Sheets. Lanjutkan?')) return;
-      DB = []; render(); alert('Tampilan lokal dikosongkan. Untuk menghapus data di server, hapus baris di Google Sheets (sheet yang kamu buat).');
+      if(!data.equipment || !data.dateFound || !data.reporter || !data.severity || !data.status || !data.description){
+        alert('Mohon lengkapi semua field wajib.');
+        return;
+      }
+      try{
+        await saveReportToSheet(data);
+        clearForm();
+      }catch(err){
+        console.error('save error', err);
+        alert('Gagal mengirim laporan. Cek console.');
+      }
     });
 
-    // Filters/search
-    ['#filterEquip','#filterStatus','#filterSeverity','#search'].forEach(sel=>{ document.querySelector(sel).addEventListener('input', render); });
+    $('#btnReset').addEventListener('click', clearForm);
+    $('#btnExportCSV').addEventListener('click', ()=>{
+      const cols = ['id','location','equipment','dateFound','reporter','serial','severity','status','description','notes','createdAt','updatedAt'];
+      const escq = v => '"' + String(v??'').replace(/"/g,'""') + '"';
+      const rows = DB.map(r => cols.map(c => escq(r[c]??'')).join(','));
+      const csv = [cols.join(','), ...rows].join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+      a.download = 'laporan-peralatan-96745.csv'; document.body.appendChild(a); a.click(); a.remove();
+    });
+    $('#btnClearAll').addEventListener('click', ()=>{
+      if(!confirm('Ini akan mengosongkan tampilan (Sheet tidak terhapus dari sini). Lanjutkan?')) return;
+      DB=[]; render();
+    });
 
-    // Init
-    (function init(){ if(!document.getElementById('dateFound').value) document.getElementById('dateFound').value = todayYYYYMMDD(); loadReportsFromSheet(); })();
+    // ===== init =====
+    (function init(){
+      if(!$('#dateFound').value) $('#dateFound').value = todayYYYYMMDD();
+      loadReportsFromSheet();
+    })();
 
+    // expose for inline onclick
+    window.onEdit = onEdit; window.onDelete = onDelete;
   </script>
 </body>
 </html>
