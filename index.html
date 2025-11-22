@@ -241,7 +241,7 @@
 
   <script>
     // ========== Konstanta & utilitas ==========
-    const API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjKkUjckdQ7DHXHu-c_UGX98TzsFgoGFgnKl18CoMqYM9mXev7_02bIyGo6tkbfvtAvovJUX0fSPj6we4A9HMlVomlRBxOKcMMuvMANNme7zRKIidLRV05Cy5yyxo4bajOFYIxlwjV2gi2pjDEpt-byXFFZgZjI9TDR0dRIubbszE_gP_5UBx4iVmu77GsFIkvu53Qjg2E1HigFIXLyTE_fxY3mcMUwXxmhgAI1IWv0AKH-T26MHUvJZbhbgfLxXpjYQgW9VUZmZyRqUQkakS6lTMrqIQ&lib=Msa7bg36DVvqnS4M4WYucVYANPurok1w9';
+    const API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLimv6ZFltjyk4hZ0ZSff71PVW3ojlyCYX80gnqfNEa8Z5RkauwYDQotxWHE3C8qedXfs73I1Peg7c7lC8wRU-G9IiSIlWOGtjjhvDhxPXzby8ADBJ3SwPRTDBXB8-SpQV6ELK6v2pks4Vwvh3uQBUoMwoX9Fnx59Qjdvyp4BHhs5A9Lcp5v_hbBSCCyEWxhWMpgEpBWNeWu3AOGQKkKceVHFQZvSeKvXi4ZIndO1nRulEUMZSJcp1uW8feGRuLS9iEo1faI9fJ3kbtl69M4C4a-SvqZsQ&lib=Msa7bg36DVvqnS4M4WYucVYANPurok1w9';
     const LOCATION = 'Pos Meteorologi 96745 Kemayoran';
     const $ = (q) => document.querySelector(q);
 
@@ -280,34 +280,69 @@
     }
 
     // ===== Simpan laporan baru — kirim sebagai application/x-www-form-urlencoded =====
+// ===== Simpan laporan — kirim via hidden form -> target iframe (bypass CORS preflight) =====
 async function saveReportToSheet(report){
-  // buat URLSearchParams dari objek
-  const params = new URLSearchParams();
-  params.append('lokasi', report.location || '');
-  params.append('peralatan', report.equipment || '');
-  params.append('tanggalKejadian', report.dateFound || '');
-  params.append('pelapor', report.reporter || '');
-  params.append('nomorSeri', report.serial || '');
-  params.append('keparahan', report.severity || '');
-  params.append('status', report.status || '');
-  params.append('deskripsi', report.description || '');
-  params.append('catatan', report.notes || '');
+  // pastikan API_URL adalah googleusercontent.com link hasil redirect
+  if(!API_URL) throw new Error('API_URL belum diisi');
 
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    // **JANGAN** set Content-Type manual; browser akan set ke application/x-www-form-urlencoded
-    body: params
-  });
-
-  // jika server mengembalikan JSON
-  if(!res.ok){
-    const txt = await res.text().catch(()=>null);
-    throw new Error('HTTP '+res.status+' '+(txt||''));
+  // buat iframe tersembunyi jika belum ada
+  let iframe = document.getElementById('gs-iframe');
+  if(!iframe){
+    iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.id = 'gs-iframe';
+    document.body.appendChild(iframe);
   }
-  const j = await res.json().catch(()=>({ok:false}));
-  if(!j || !j.ok) throw new Error((j && j.error) ? j.error : 'save failed');
-  return j.id;
+
+  // buat form sementara
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = API_URL;
+  form.target = 'gs-iframe';
+  form.style.display = 'none';
+  // gunakan enctype default (application/x-www-form-urlencoded)
+
+  // helper: tambah input
+  const add = (name, val) => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = name;
+    inp.value = val ?? '';
+    form.appendChild(inp);
+  };
+
+  // isi field sesuai Apps Script doPost expected names
+  add('lokasi', report.location || '');
+  add('peralatan', report.equipment || '');
+  add('tanggalKejadian', report.dateFound || '');
+  add('pelapor', report.reporter || '');
+  add('nomorSeri', report.serial || '');
+  add('keparahan', report.severity || '');
+  add('status', report.status || '');
+  add('deskripsi', report.description || '');
+  add('catatan', report.notes || '');
+
+  document.body.appendChild(form);
+
+  // Submit form -> data dikirim ke Google Apps Script; response masuk ke iframe (cross-origin)
+  form.submit();
+
+  // bersihkan form sementara
+  setTimeout(()=>{ form.remove(); }, 1000);
+
+  // Karena kita tidak bisa membaca response secara cross-origin,
+  // kita tunggu sejenak lalu reload DB via GET untuk melihat data terbaru.
+  setTimeout(async ()=>{
+    try{
+      await loadReportsFromSheet(); // akan memanggil doGet dan memuat data terbaru
+      alert('Laporan dikirim. Periksa tabel (jika belum muncul, tunggu sejenak).');
+    }catch(err){
+      console.error('Load after submit failed', err);
+      alert('Laporan dikirim (tidak bisa verifikasi respons). Cek Google Sheet.');
+    }
+  }, 1200); // delay 1.2s, bisa kamu naikkan jika koneksi lambat
 }
+
 
     // ========== Render (mengandalkan DB global) ==========
     function render(){
