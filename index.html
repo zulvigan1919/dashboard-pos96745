@@ -241,7 +241,7 @@
 
   <script>
     // ========== Konstanta & utilitas ==========
-    const API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLieSi-M4lhiDuT9ZRGIfoQbC3IVYmDL8yf-nv1M8rlBdWmVAduFQ1zeT2nmATfRdpIX8ZJj49tXveVSlnHtOny4l44FoW1G5L5sxiq481ok0keux5QfkdHnJwaDohvacAWHgcAjHHoYdcSf3ziaI6YopQ4Bz7isG2QbYgC3qs2lM5diruJbPSMfTtzuuzefZ0sVMfocDcuiSOKnR2URndi7G8KGrI2tYBM3BpcaFPILqabz85PVvDd9oX1J9L1pLZ7mwcGRbWQGCa0dqq1uHG5TcA5IuQ&lib=Msa7bg36DVvqnS4M4WYucVYANPurok1w9';
+    const API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjKkUjckdQ7DHXHu-c_UGX98TzsFgoGFgnKl18CoMqYM9mXev7_02bIyGo6tkbfvtAvovJUX0fSPj6we4A9HMlVomlRBxOKcMMuvMANNme7zRKIidLRV05Cy5yyxo4bajOFYIxlwjV2gi2pjDEpt-byXFFZgZjI9TDR0dRIubbszE_gP_5UBx4iVmu77GsFIkvu53Qjg2E1HigFIXLyTE_fxY3mcMUwXxmhgAI1IWv0AKH-T26MHUvJZbhbgfLxXpjYQgW9VUZmZyRqUQkakS6lTMrqIQ&lib=Msa7bg36DVvqnS4M4WYucVYANPurok1w9';
     const LOCATION = 'Pos Meteorologi 96745 Kemayoran';
     const $ = (q) => document.querySelector(q);
 
@@ -279,21 +279,35 @@
       }catch(err){console.error('loadReportsFromSheet',err);DB=[];render();}
     }
 
-    async function saveReportToSheet(report){
-      const payload = {
-        lokasi: report.location || LOCATION,
-        peralatan: report.equipment || '',
-        tanggalKejadian: report.dateFound || '',
-        pelapor: report.reporter || '',
-        nomorSeri: report.serial || '',
-        keparahan: report.severity || '',
-        status: report.status || '',
-        deskripsi: report.description || '',
-        catatan: report.notes || ''
-      };
-      const res = await fetch(API_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-      const j = await res.json(); if(!j || !j.ok) throw new Error(j && j.error ? j.error : 'save failed'); return j.id;
-    }
+    // ===== Simpan laporan baru — kirim sebagai application/x-www-form-urlencoded =====
+async function saveReportToSheet(report){
+  // buat URLSearchParams dari objek
+  const params = new URLSearchParams();
+  params.append('lokasi', report.location || '');
+  params.append('peralatan', report.equipment || '');
+  params.append('tanggalKejadian', report.dateFound || '');
+  params.append('pelapor', report.reporter || '');
+  params.append('nomorSeri', report.serial || '');
+  params.append('keparahan', report.severity || '');
+  params.append('status', report.status || '');
+  params.append('deskripsi', report.description || '');
+  params.append('catatan', report.notes || '');
+
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    // **JANGAN** set Content-Type manual; browser akan set ke application/x-www-form-urlencoded
+    body: params
+  });
+
+  // jika server mengembalikan JSON
+  if(!res.ok){
+    const txt = await res.text().catch(()=>null);
+    throw new Error('HTTP '+res.status+' '+(txt||''));
+  }
+  const j = await res.json().catch(()=>({ok:false}));
+  if(!j || !j.ok) throw new Error((j && j.error) ? j.error : 'save failed');
+  return j.id;
+}
 
     // ========== Render (mengandalkan DB global) ==========
     function render(){
