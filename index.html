@@ -1,9 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard Pelaporan Peralatan Rusak – Pos Meteorologi 96745 Kemayoran</title>
+
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.26.0/dist/supabase.min.js"></script>
+
   <style>
     :root{
       --bg:#0038bc; --panel:#0b1220; --muted:#1f2937; --text:#e5e7eb; --text-dim:#9ca3af;
@@ -17,9 +21,9 @@
       background: radial-gradient(1200px 600px at 20% -10%, rgba(34,211,238,.12), transparent),
                   radial-gradient(1000px 500px at 120% 10%, rgba(16,185,129,.10), transparent),
                   var(--bg);
-      color:var(--text); overflow-x:hidden;
+      color:var(--text); overflow-y:auto;
     }
-    .container{max-width:1500px; margin:0 auto; padding:24px}
+    .container{max-width:1400px; margin:0 auto; padding:24px}
     header{display:flex; align-items:center; gap:14px; margin-bottom:18px}
     .logo-bmkg{width:56px;height:56px;border-radius:50%;object-fit:cover;background:white;padding:4px;box-shadow:0 0 10px rgba(0,0,0,.15)}
     h1{font-size:20px;margin:0;font-weight:700}
@@ -47,24 +51,15 @@
     .full{grid-column:1/-1}
     .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
 
-    /* default tombol (fallback) */
-    button{color:#0b1220;border:0;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer}
+    /* warna tombol - lebih beragam */
+    button{border:0;padding:11px 16px;border-radius:10px;font-weight:700;cursor:pointer;min-width:120px}
+    .btn-primary{background:linear-gradient(90deg,#06b6d4,#22d3ee); color:#04282b; box-shadow:0 6px 18px rgba(34,211,238,.18)}
+    .btn-reset{background:#111827;color:var(--text); border:1px solid rgba(148,163,184,.12)}
+    .btn-csv{background:linear-gradient(90deg,#f59e0b,#fbbf24); color:#2b1700}
+    .btn-danger{background:linear-gradient(90deg,#fb7185,#f97316); color:#2b0a0a}
+    .btn-soft{background:#0b1220;color:var(--text); border:1px solid rgba(148,163,184,.12)}
 
-    /* warna-warni tombol */
-    .btn-save { background: linear-gradient(180deg, #34d399, #10b981); color: #042016; }   /* hijau */
-    .btn-reset { background: linear-gradient(180deg, #f59e0b, #d97706); color: #221600; }   /* kuning/orange */
-    .btn-csv  { background: linear-gradient(180deg, #60a5fa, #2563eb); color: #00182a; }   /* biru muda */
-    .btn-clear{ background: linear-gradient(180deg, #fb7185, #ef4444); color: #2b0a0a; }   /* merah */
-    .btn-secondary { background: linear-gradient(180deg,#94a3b8,#64748b); color: #06101a; } /* abu-abu aksen */
-    .btn-edit { background: linear-gradient(180deg,#7dd3fc,#06b6d4); color:#022026; } /* edit tombol -> aqua */
-    .btn-delete { background: linear-gradient(180deg,#fda4af,#fb7185); color:#3a0303; } /* delete -> pink/red */
-
-    /* hover */
-    .btn-save:hover, .btn-reset:hover, .btn-csv:hover, .btn-clear:hover, .btn-secondary:hover, .btn-edit:hover, .btn-delete:hover {
-      transform: translateY(-2px);
-      filter:brightness(1.03);
-    }
-
+    .toolbar{display:flex;gap:8px;align-items:center}
     .table-wrap{overflow:auto;border:1px solid rgba(148,163,184,.12);border-radius:12px;min-width:0}
     table{width:100%;border-collapse:separate;border-spacing:0;min-width:0}
     thead th{position:sticky;top:0;background:#0c1425;z-index:1}
@@ -72,7 +67,16 @@
     .desc-cell{white-space:normal;word-break:break-word;max-width:100%}
     .id-cell{white-space:nowrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
     .pill{padding:4px 8px;font-size:12px;border-radius:999px;display:inline-block;border:1px solid rgba(148,163,184,.2)}
+    .pill.low{background:rgba(52,211,153,.12); border-color:rgba(52,211,153,.35)}
+    .pill.med{background:rgba(96,165,250,.12); border-color:rgba(96,165,250,.35)}
+    .pill.high{background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.35)}
+    .pill.crit{background:rgba(248,113,113,.12); border-color:rgba(248,113,113,.35)}
+    .pill.status-open{background:rgba(34,211,238,.12); border-color:rgba(34,211,238,.35)}
+    .pill.status-progress{background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.35)}
+    .pill.status-done{background:rgba(52,211,153,.12); border-color:rgba(52,211,153,.35)}
+
     .footer{margin-top:16px;font-size:12px;color:var(--text-dim)}
+    .note{font-size:12px;color:var(--text-dim);margin-top:8px}
   </style>
 </head>
 <body>
@@ -81,7 +85,7 @@
       <img src="logo-bmkg.png" alt="Logo BMKG" class="logo-bmkg" />
       <div>
         <h1>Dashboard Pelaporan Peralatan Rusak</h1>
-        <div class="subtitle">Pos Meteorologi <strong>96745 Kemayoran</strong> • Lokasi: Jakarta • Database: Google Sheets (WebApp)</div>
+        <div class="subtitle">Pos Meteorologi <strong>96745 Kemayoran</strong> • Lokasi: Jakarta • Database: Supabase</div>
       </div>
     </header>
 
@@ -163,9 +167,8 @@
               <textarea id="notes" placeholder="Mis. jadwal kalibrasi, vendor, nomor tiket, dsb."></textarea>
             </div>
             <div class="actions full">
-              <!-- tombol dengan class warna-warni -->
-              <button type="submit" id="btnSubmit" class="btn-save">Simpan Laporan</button>
-              <button type="button" class="btn-reset" id="btnReset">Reset Form</button>
+              <button type="submit" id="btnSubmit" class="btn-primary">Simpan Laporan</button>
+              <button type="button" id="btnReset" class="btn-reset">Reset Form</button>
             </div>
             <input type="hidden" id="editId" />
           </form>
@@ -178,7 +181,7 @@
           <div style="display:flex;gap:8px;align-items:center">
             <input id="search" placeholder="Cari teks… (alat, pelapor, deskripsi)" style="padding:10px 12px;border-radius:10px;background:#0b1220;color:var(--text);border:1px solid rgba(148,163,184,.12)"/>
             <button id="btnExportCSV" class="btn-csv">Download CSV</button>
-            <button id="btnClearAll" class="btn-clear">Kosongkan DB</button>
+            <button id="btnClearAll" class="btn-danger">Kosongkan Tampilan</button>
           </div>
         </div>
         <div class="body">
@@ -203,174 +206,259 @@
       </section>
     </div>
 
-    <div class="footer">Database disimpan: Google Sheets via WebApp. Ekspor CSV tersedia.</div>
+    <div class="footer">Database disimpan: Supabase. Ekspor CSV tersedia. <div class="note" id="note">Memuat...</div></div>
   </div>
 
-  <script>
-    // ===== UBAH DI SINI: MASUKKAN URL GOOGLEUSERCONTENT (hasil redirect /exec) =====
-    const API_URL = 'https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLgaCIs0GjMyqdpQNbiXjng7MFfHRhH0xkUWTxUCDZlAjL2-SvZSj19EyOxythxInmIjA0ogaYL0MvJZ4czFvBIEhZ3UwzYrp72a615Z7CIYyKSpW5jQVe417lCsH_tcglYGECl5lnJpLIPP2lY3V3K0JSROdF88ECItPCeRRkOkBYo52ICdHrtCoZNhtucfAa47MN2TmVWQfDoJw06bZUQZwJTRFZjlu8ujnaHahL4ALi4p1LpXx2-3m0h6YPiIA7abHNl8bDGEGOBQ12kCImU63MhOiw&lib=Msa7bg36DVvqnS4M4WYucVYANPurok1w9';
+<script>
+/* ================================
+   1) GANTI DI SINI: Supabase config
+   ================================
+   - Masukkan SUPABASE_URL dan SUPABASE_ANON_KEY projectmu.
+   - Contoh: https://xyzabc.supabase.co
+*/
+const SUPABASE_URL = 'https://zlymkalzobdmsztfcund.supabase.co'; // <<< GANTI DI SINI
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpseW1rYWx6b2JkbXN6dGZjdW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5OTMwOTIsImV4cCI6MjA3OTU2OTA5Mn0._q7d3KUFANLkgO8GrJMgljSixX0qV-6KNMSFANh-in8'; // <<< GANTI DI SINI
 
-    const DB_KEY = 'equipReports96745_local';
-    const LOCATION = 'Pos Meteorologi 96745 Kemayoran';
-    const $ = q => document.querySelector(q);
+// init supabase
+const supabase = supabaseJs.createClient
+  ? supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); // compatibility
 
-    function uid(){ return 'RPT-' + Math.random().toString(36).slice(2,6).toUpperCase() + '-' + Date.now().toString(36).toUpperCase(); }
-    function fmtDate(v){ if(!v) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(v)){ const [y,m,d]=v.split('-'); return d+'/'+m+'/'+y } try{ return new Date(v).toLocaleDateString('id-ID') }catch{ return String(v) } }
+const $ = q => document.querySelector(q);
 
-    let DB = [];
+function uid(){ return 'RPT-' + Math.random().toString(36).slice(2,6).toUpperCase() + '-' + Date.now().toString(36).toUpperCase(); }
+function fmtDate(v){ if(!v) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(v)){ const [y,m,d]=v.split('-'); return d+'/'+m+'/'+y } try{ return new Date(v).toLocaleDateString('id-ID') } catch { return String(v) } }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function severityPill(s){ const map={LOW:['Rendah','low'],MED:['Sedang','med'],HIGH:['Tinggi','high'],CRIT:['Kritis','crit']}; const [t,c]=map[s]||[s,'']; return `<span class="pill ${c}">${t}</span>`; }
+function statusPill(s){ const map={OPEN:['Dilaporkan','status-open'],IN_PROGRESS:['Diproses','status-progress'],DONE:['Selesai','status-done']}; const [t,c]=map[s]||[s,'']; return `<span class="pill ${c}">${t}</span>`; }
 
-    function severityPill(s){ const map={LOW:['Rendah','low'],MED:['Sedang','med'],HIGH:['Tinggi','high'],CRIT:['Kritis','crit']}; const [t,c] = map[s]||[s,'']; return `<span class="pill ${c}">${t}</span>`; }
-    function statusPill(s){ const map={OPEN:['Dilaporkan','status-open'],IN_PROGRESS:['Diproses','status-progress'],DONE:['Selesai','status-done']}; const [t,c] = map[s]||[s,'']; return `<span class="pill ${c}">${t}</span>`; }
-    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+let DB = []; // in-memory cache for UI
+const TABLE = 'reports'; // nama tabel Supabase
 
-    async function loadReportsFromSheet(){
-      try{
-        const res = await fetch(API_URL, { method: 'GET' });
-        if(!res.ok) throw new Error('Gagal memuat data: '+res.status);
-        const data = await res.json();
-        DB = (Array.isArray(data) ? data : []).map(r => ({
-          id: r.ID || r.id || r.Id || '',
-          location: r.Lokasi || r.location || '',
-          equipment: r['Nama Peralatan'] || r.equipment || r.peralatan || '',
-          dateFound: r['Tanggal Kejadian'] || r.dateFound || r.tanggalKejadian || '',
-          reporter: r.Pelapor || r.reporter || '',
-          serial: r['Nomor/ID/Seri'] || r.serial || r.nomorSeri || '',
-          severity: r.Keparahan || r.severity || r.keparahan || '',
-          status: r['Status Penanganan'] || r.status || '',
-          description: r['Deskripsi Kerusakan'] || r.description || r.deskripsi || '',
-          notes: r['Catatan Tambahan'] || r.notes || r.catatan || '',
-          createdAt: r['Dibuat Pada'] || r.createdAt || '',
-          updatedAt: r['Diperbarui Pada'] || r.updatedAt || ''
-        }));
-      }catch(err){
-        console.warn('loadReports error', err);
-        DB = [];
-      }
-      render();
-    }
+/* ===============================
+   Load semua laporan (GET)
+   =============================== */
+async function loadReportsFromSupabase(){
+  try{
+    $('#note').textContent = 'Memuat data dari Supabase...';
+    // SELECT * FROM reports ORDER BY created_at DESC
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    function render(){
-      const tbody = $('#table tbody');
-      tbody.innerHTML = DB.map(r => {
-        const idDisplay = r.serial && String(r.serial).trim() ? esc(r.serial) : esc(r.id);
-        const desc = esc(String(r.description||''));
-        return `<tr>
-          <td>${esc(r.equipment)}</td>
-          <td>${fmtDate(r.dateFound)}</td>
-          <td>${esc(r.reporter)}</td>
-          <td>${severityPill(r.severity)}</td>
-          <td>${statusPill(r.status)}</td>
-          <td class="desc-cell" title="${desc}">${desc}</td>
-          <td class="id-cell">${idDisplay}</td>
-          <td>
-            <button class="btn-edit" onclick="onEdit('${esc(r.id)}')">Ubah</button>
-            <button class="btn-delete" onclick="onDelete('${esc(r.id)}')">Hapus</button>
-          </td>
-        </tr>`;
-      }).join('');
+    if(error) throw error;
+    DB = (data || []).map(r => ({
+      id: r.id || '',
+      location: r.location || '',
+      equipment: r.equipment || '',
+      dateFound: r.date_found || r.dateFound || '',
+      reporter: r.reporter || '',
+      serial: r.serial || '',
+      severity: r.severity || '',
+      status: r.status || '',
+      description: r.description || '',
+      notes: r.notes || '',
+      createdAt: r.created_at || r.createdAt || '',
+      updatedAt: r.updated_at || r.updatedAt || ''
+    }));
+    render();
+    $('#note').textContent = 'Data dimuat dari Supabase.';
+  }catch(err){
+    console.error('loadReports error', err);
+    $('#note').textContent = 'Gagal memuat data dari Supabase. Periksa config dan policy RLS.';
+    DB = [];
+    render();
+  }
+}
 
-      $('#st-total').textContent = DB.length;
-      $('#st-open').textContent = DB.filter(x=>x.status==='OPEN').length;
-      $('#st-progress').textContent = DB.filter(x=>x.status==='IN_PROGRESS').length;
-      $('#st-done').textContent = DB.filter(x=>x.status==='DONE').length;
-    }
+/* ===============================
+   Insert laporan (POST)
+   ===============================
+   Kita memasukkan baris ke tabel Supabase via client JS (anon key).
+   Pastikan RLS mengijinkan INSERT untuk role public (atau gunakan autentikasi).
+*/
+async function saveReportToSupabase(report){
+  try{
+    $('#btnSubmit').disabled = true;
+    $('#btnSubmit').textContent = 'Menyimpan...';
 
-    function todayYYYYMMDD(){ const t=new Date(),y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),d=String(t.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
-    function clearForm(){ $('#reportForm').reset(); $('#editId').value=''; $('#formMode').textContent=''; $('#btnSubmit').textContent='Simpan Laporan'; $('#dateFound').value = todayYYYYMMDD(); }
-    function onEdit(id){ const r = DB.find(x=>x.id===id); if(!r) return; $('#equipment').value=r.equipment||''; $('#dateFound').value = r.dateFound || ''; $('#reporter').value=r.reporter||''; $('#serial').value=r.serial||''; $('#severity').value=r.severity||''; $('#status').value=r.status||'OPEN'; $('#description').value=r.description||''; $('#notes').value=r.notes||''; $('#editId').value=r.id; $('#formMode').textContent='Mode: Ubah (akan menjadi entri baru)'; $('#btnSubmit').textContent='Perbarui Laporan'; window.scrollTo({top:0,behavior:'smooth'}); }
-    function onDelete(id){ if(!confirm('Hapus laporan ini? (Hapus manual di Sheet jika API tidak mendukung delete)')) return; alert('Hapus belum diaktifkan di API WebApp. Hapus manual di Google Sheet.'); }
+    // mapping field names to db columns (use snake_case if table uses that)
+    const payload = {
+      location: report.location || '',
+      equipment: report.equipment || '',
+      date_found: report.dateFound || null,
+      reporter: report.reporter || '',
+      serial: report.serial || '',
+      severity: report.severity || '',
+      status: report.status || '',
+      description: report.description || '',
+      notes: report.notes || ''
+    };
 
-    async function saveReportToSheet(report){
-      if(!API_URL || API_URL.indexOf('script.googleusercontent.com')===-1){
-        alert('API_URL belum diset ke script.googleusercontent.com. Buka WebApp /exec -> copy URL hasil redirect (script.googleusercontent...) lalu paste di index.html pada const API_URL.');
-        throw new Error('API_URL invalid');
-      }
-      let iframe = document.getElementById('gs-iframe');
-      if(!iframe){
-        iframe = document.createElement('iframe');
-        iframe.id = 'gs-iframe';
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-      }
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = API_URL;
-      form.target = 'gs-iframe';
-      form.style.display = 'none';
-      const add = (name, val) => {
-        const inp = document.createElement('input');
-        inp.type = 'hidden';
-        inp.name = name;
-        inp.value = val ?? '';
-        form.appendChild(inp);
-      };
-      add('lokasi', report.location || '');
-      add('peralatan', report.equipment || '');
-      add('tanggalKejadian', report.dateFound || '');
-      add('pelapor', report.reporter || '');
-      add('nomorSeri', report.serial || '');
-      add('keparahan', report.severity || '');
-      add('status', report.status || '');
-      add('deskripsi', report.description || '');
-      add('catatan', report.notes || '');
-      document.body.appendChild(form);
-      form.submit();
-      setTimeout(()=>form.remove(), 1200);
-      setTimeout(async ()=>{
-        await loadReportsFromSheet();
-        alert('Laporan dikirim. Jika belum muncul, tunggu beberapa detik lalu refresh.');
-      }, 1400);
-    }
+    const { data, error } = await supabase
+      .from(TABLE)
+      .insert([payload])
+      .select(); // return inserted row(s)
 
-    document.getElementById('reportForm').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const data = {
-        id: $('#editId').value || uid(),
-        location: LOCATION,
-        equipment: $('#equipment').value.trim(),
-        dateFound: $('#dateFound').value || null,
-        reporter: $('#reporter').value.trim(),
-        serial: $('#serial').value.trim(),
-        severity: $('#severity').value,
-        status: $('#status').value,
-        description: $('#description').value.trim(),
-        notes: $('#notes').value.trim(),
-        updatedAt: new Date().toISOString()
-      };
-      if(!data.equipment || !data.dateFound || !data.reporter || !data.severity || !data.status || !data.description){
-        alert('Mohon lengkapi semua field wajib.');
-        return;
-      }
-      try{
-        await saveReportToSheet(data);
-        clearForm();
-      }catch(err){
-        console.error('save error', err);
-        alert('Gagal mengirim laporan. Cek console.');
-      }
-    });
+    if(error) throw error;
 
-    $('#btnReset').addEventListener('click', clearForm);
-    $('#btnExportCSV').addEventListener('click', ()=>{
-      const cols = ['id','location','equipment','dateFound','reporter','serial','severity','status','description','notes','createdAt','updatedAt'];
-      const escq = v => '"' + String(v??'').replace(/"/g,'""') + '"';
-      const rows = DB.map(r => cols.map(c => escq(r[c]??'')).join(','));
-      const csv = [cols.join(','), ...rows].join('\n');
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
-      a.download = 'laporan-peralatan-96745.csv'; document.body.appendChild(a); a.click(); a.remove();
-    });
-    $('#btnClearAll').addEventListener('click', ()=>{
-      if(!confirm('Ini akan mengosongkan tampilan (Sheet tidak terhapus dari sini). Lanjutkan?')) return;
-      DB=[]; render();
-    });
+    // reload list (simple approach)
+    await loadReportsFromSupabase();
 
-    (function init(){
-      if(!$('#dateFound').value) $('#dateFound').value = todayYYYYMMDD();
-      loadReportsFromSheet();
-    })();
+    alert('Laporan berhasil dikirim.');
+  } catch(err){
+    console.error('saveReport error', err);
+    alert('Gagal mengirim laporan. Lihat console untuk detail.');
+  } finally {
+    $('#btnSubmit').disabled = false;
+    $('#btnSubmit').textContent = 'Simpan Laporan';
+  }
+}
 
-    window.onEdit = onEdit; window.onDelete = onDelete;
-  </script>
+/* ===============================
+   Render tabel & statistik
+   =============================== */
+function render(){
+  const tbody = $('#table tbody');
+  const q = $('#search').value.trim().toLowerCase();
+  const rows = DB.filter(r => {
+    if(!q) return true;
+    return String(r.equipment||'').toLowerCase().includes(q) ||
+           String(r.reporter||'').toLowerCase().includes(q) ||
+           String(r.description||'').toLowerCase().includes(q);
+  });
+
+  tbody.innerHTML = rows.map(r => {
+    const idDisplay = (r.serial && String(r.serial).trim()) ? esc(r.serial) : esc(r.id);
+    const desc = esc(String(r.description||''));
+    return `<tr>
+      <td>${esc(r.equipment)}</td>
+      <td>${fmtDate(r.dateFound)}</td>
+      <td>${esc(r.reporter)}</td>
+      <td>${severityPill(r.severity)}</td>
+      <td>${statusPill(r.status)}</td>
+      <td class="desc-cell" title="${desc}">${desc}</td>
+      <td class="id-cell">${idDisplay}</td>
+      <td>
+        <button class="btn-soft" onclick="onEdit('${esc(r.id)}')">Ubah</button>
+        <button class="btn-danger" onclick="onDelete('${esc(r.id)}')">Hapus</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  $('#st-total').textContent = DB.length;
+  $('#st-open').textContent = DB.filter(x=>x.status==='OPEN').length;
+  $('#st-progress').textContent = DB.filter(x=>x.status==='IN_PROGRESS').length;
+  $('#st-done').textContent = DB.filter(x=>x.status==='DONE').length;
+}
+
+/* ===============================
+   Form helpers & events
+   =============================== */
+function todayYYYYMMDD(){ const t=new Date(); const y=t.getFullYear(), m=String(t.getMonth()+1).padStart(2,'0'), d=String(t.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+function clearForm(){ $('#reportForm').reset(); $('#editId').value=''; $('#formMode').textContent=''; $('#btnSubmit').textContent='Simpan Laporan'; $('#dateFound').value = todayYYYYMMDD(); }
+
+function onEdit(id){
+  const r = DB.find(x=>x.id===id); if(!r) return;
+  $('#equipment').value = r.equipment || '';
+  $('#dateFound').value = r.dateFound || '';
+  $('#reporter').value = r.reporter || '';
+  $('#serial').value = r.serial || '';
+  $('#severity').value = r.severity || '';
+  $('#status').value = r.status || 'OPEN';
+  $('#description').value = r.description || '';
+  $('#notes').value = r.notes || '';
+  $('#editId').value = r.id || '';
+  $('#formMode').textContent = 'Mode: Ubah (setelah Simpan, baris baru akan ditambahkan)';
+  $('#btnSubmit').textContent = 'Perbarui Laporan';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* Delete: jika mau hapus langsung via API (butuh policy DELETE) */
+async function onDelete(id){
+  if(!confirm('Hapus laporan ini dari database?')) return;
+  try{
+    const { data, error } = await supabase.from(TABLE).delete().eq('id', id);
+    if(error) throw error;
+    await loadReportsFromSupabase();
+    alert('Baris berhasil dihapus.');
+  }catch(err){
+    console.error('delete error', err);
+    alert('Gagal hapus. Periksa policy RLS atau lihat console.');
+  }
+}
+
+/* ===============================
+   Binding form submit -> POST
+   =============================== */
+document.getElementById('reportForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const data = {
+    id: $('#editId').value || uid(),
+    location: 'Pos Meteorologi 96745 Kemayoran',
+    equipment: $('#equipment').value.trim(),
+    dateFound: $('#dateFound').value || null,
+    reporter: $('#reporter').value.trim(),
+    serial: $('#serial').value.trim(),
+    severity: $('#severity').value,
+    status: $('#status').value,
+    description: $('#description').value.trim(),
+    notes: $('#notes').value.trim(),
+    updatedAt: new Date().toISOString()
+  };
+  if(!data.equipment || !data.dateFound || !data.reporter || !data.severity || !data.status || !data.description){
+    alert('Mohon lengkapi semua field wajib.');
+    return;
+  }
+  // Simpan via Supabase
+  await saveReportToSupabase(data);
+  clearForm();
+});
+
+/* search + export + clear */
+$('#search').addEventListener('input', render);
+
+$('#btnExportCSV').addEventListener('click', ()=>{
+  const cols = ['id','location','equipment','dateFound','reporter','serial','severity','status','description','notes','createdAt','updatedAt'];
+  const escq = v => '"' + String(v??'').replace(/"/g,'""') + '"';
+  const rows = DB.map(r => cols.map(c => {
+    if(c === 'dateFound') return escq(r.dateFound || '');
+    return escq(r[c] ?? '');
+  }).join(','));
+  const csv = [cols.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'laporan-peralatan-96745.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+});
+
+$('#btnClearAll').addEventListener('click', ()=>{
+  if(!confirm('Ini hanya akan mengosongkan tampilan (data asli di Supabase tetap ada). Lanjutkan?')) return;
+  DB = []; render();
+});
+
+$('#btnReset').addEventListener('click', clearForm);
+
+/* ===============================
+   Init
+   =============================== */
+(function init(){
+  // tanggal default
+  if(!$('#dateFound').value) $('#dateFound').value = todayYYYYMMDD();
+
+  // quick check config validity
+  if(!SUPABASE_URL.includes('supabase') || SUPABASE_ANON_KEY.length < 20){
+    $('#note').textContent = 'Supabase belum dikonfigurasi. Edit SUPABASE_URL & SUPABASE_ANON_KEY pada bagian atas file.';
+    console.warn('Supabase config missing. Fill SUPABASE_URL and SUPABASE_ANON_KEY at top of file.');
+    return;
+  }
+
+  loadReportsFromSupabase();
+
+  // optional: poll every 20s to get new reports (or use realtime later)
+  setInterval(()=>{ loadReportsFromSupabase().catch(()=>{}); }, 20000);
+})();
+</script>
 </body>
 </html>
