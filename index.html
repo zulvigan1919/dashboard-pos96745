@@ -6,7 +6,7 @@
   <title>Dashboard Pelaporan Peralatan Rusak – Pos Meteorologi 96745 Kemayoran</title>
 
   <!-- Supabase JS (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.26.0/dist/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root{
@@ -220,9 +220,7 @@ const SUPABASE_URL = 'https://zlymkalzobdmsztfcund.supabase.co'; // <<< GANTI DI
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpseW1rYWx6b2JkbXN6dGZjdW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5OTMwOTIsImV4cCI6MjA3OTU2OTA5Mn0._q7d3KUFANLkgO8GrJMgljSixX0qV-6KNMSFANh-in8'; // <<< GANTI DI SINI
 
 // init supabase
-const supabase = supabaseJs.createClient
-  ? supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); // compatibility
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const $ = q => document.querySelector(q);
 
