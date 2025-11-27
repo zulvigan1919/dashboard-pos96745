@@ -312,15 +312,12 @@ async function loadReportsFromSupabase(){
 /* ===============================
    Insert laporan (POST)
    =============================== */
-// ===============================
-// Insert OR Update laporan (POST/PUT)
-// ===============================
 async function saveReportToSupabase(report){
   try{
+    ensureClientOrThrow();
     $('#btnSubmit').disabled = true;
-    $('#btnSubmit').textContent = report.id ? 'Memperbarui...' : 'Menyimpan...';
+    $('#btnSubmit').textContent = 'Menyimpan...';
 
-    // mapping field names ke kolom DB (snake_case)
     const payload = {
       location: report.location || '',
       equipment: report.equipment || '',
@@ -333,37 +330,18 @@ async function saveReportToSupabase(report){
       notes: report.notes || ''
     };
 
-    let res;
-    if (report.id) {
-      // UPDATE existing row
-      const { data, error } = await supabase
-        .from(TABLE)
-        .update(payload)
-        .eq('id', report.id)
-        .select(); // ambil baris yg diupdate (opsional)
+    const { data, error } = await supabaseClient
+      .from(TABLE)
+      .insert([payload])
+      .select();
 
-      if (error) throw error;
-      res = data;
-      alert('Laporan berhasil diperbarui.');
-    } else {
-      // INSERT new row
-      const { data, error } = await supabase
-        .from(TABLE)
-        .insert([payload])
-        .select(); // return inserted row(s)
+    if(error) throw error;
 
-      if (error) throw error;
-      res = data;
-      alert('Laporan berhasil dikirim.');
-    }
-
-    // reload daftar
     await loadReportsFromSupabase();
-    return res;
+    alert('Laporan berhasil dikirim.');
   } catch(err){
     console.error('saveReport error', err);
-    alert('Gagal menyimpan/perbarui laporan. Lihat console untuk detail.');
-    throw err;
+    alert('Gagal mengirim laporan. Lihat console untuk detail.');
   } finally {
     $('#btnSubmit').disabled = false;
     $('#btnSubmit').textContent = 'Simpan Laporan';
@@ -450,7 +428,7 @@ async function onDelete(id){
 document.getElementById('reportForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const data = {
-    id: $('#editId').value || null, // kalau null => insert; kalau ada => update
+    id: $('#editId').value || uid(),
     location: 'Pos Meteorologi 96745 Kemayoran',
     equipment: $('#equipment').value.trim(),
     dateFound: $('#dateFound').value || null,
@@ -466,12 +444,11 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
     alert('Mohon lengkapi semua field wajib.');
     return;
   }
-
-  try{
+  try {
     await saveReportToSupabase(data);
     clearForm();
-  }catch(err){
-    // error sudah ditangani di saveReportToSupabase
+  } catch (err) {
+    // saveReportToSupabase already handles alert/console
   }
 });
 
