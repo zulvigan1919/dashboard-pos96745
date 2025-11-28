@@ -311,12 +311,14 @@ async function loadReportsFromSupabase(){
 
 /* ===============================
    Insert laporan (POST)
-   =============================== */
-// ===============================
-// Insert OR Update laporan (POST/PUT)
-// ===============================
+   ===============================
+   Insert OR Update laporan (POST/PUT)
+   NOTE: gunakan supabaseClient (bukan supabase)
+*/
 async function saveReportToSupabase(report){
   try{
+    ensureClientOrThrow();
+
     $('#btnSubmit').disabled = true;
     $('#btnSubmit').textContent = report.id ? 'Memperbarui...' : 'Menyimpan...';
 
@@ -335,8 +337,8 @@ async function saveReportToSupabase(report){
 
     let res;
     if (report.id) {
-      // UPDATE existing row
-      const { data, error } = await supabase
+      // UPDATE existing row -> gunakan supabaseClient
+      const { data, error } = await supabaseClient
         .from(TABLE)
         .update(payload)
         .eq('id', report.id)
@@ -346,8 +348,8 @@ async function saveReportToSupabase(report){
       res = data;
       alert('Laporan berhasil diperbarui.');
     } else {
-      // INSERT new row
-      const { data, error } = await supabase
+      // INSERT new row -> gunakan supabaseClient
+      const { data, error } = await supabaseClient
         .from(TABLE)
         .insert([payload])
         .select(); // return inserted row(s)
