@@ -51,7 +51,6 @@
     .full{grid-column:1/-1}
     .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
 
-    /* warna tombol - lebih beragam */
     button{border:0;padding:11px 16px;border-radius:10px;font-weight:700;cursor:pointer;min-width:120px}
     .btn-primary{background:linear-gradient(90deg,#06b6d4,#22d3ee); color:#04282b; box-shadow:0 6px 18px rgba(34,211,238,.18)}
     .btn-reset{background:#111827;color:var(--text); border:1px solid rgba(148,163,184,.12)}
@@ -77,6 +76,11 @@
 
     .footer{margin-top:16px;font-size:12px;color:var(--text-dim)}
     .note{font-size:12px;color:var(--text-dim);margin-top:8px}
+    /* small adjustments for action buttons column */
+    .actions-col{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+    .btn-action{min-width:110px;padding:10px 14px;border-radius:10px;font-weight:700}
+    .btn-delete{background:linear-gradient(90deg,#fb7185,#f97316); color:#2b0a0a}
+    .btn-edit{background:#0b1220;color:var(--text); border:1px solid rgba(148,163,184,.12)}
   </style>
 </head>
 <body>
@@ -211,44 +215,24 @@
 
 <script>
 /* ================================
-   1) GANTI DI SINI: Supabase config
-   ================================
-*/
-const SUPABASE_URL = 'https://zlymkalzobdmsztfcund.supabase.co'; // <<< GANTI DI SINI
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpseW1rYWx6b2JkbXN6dGZjdW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5OTMwOTIsImV4cCI6MjA3OTU2OTA5Mn0._q7d3KUFANLkgO8GrJMgljSixX0qV-6KNMSFANh-in8'; // <<< GANTI DI SINI
+   KONFIGURASI SUPABASE - GANTI DI SINI
+   ================================ */
+const SUPABASE_URL = 'https://zlymkalzobdmsztfcund.supabase.co'; // <<< GANTI JIKA PERLU
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpseW1rYWx6b2JkbXN6dGZjdW5kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM5OTMwOTIsImV4cCI6MjA3OTU2OTA5Mn0._q7d3KUFANLkgO8GrJMgljSixX0qV-6KNMSFANh-in8'; // <<< GANTI JIKA PERLU
 
-// --- Robust Supabase client init (safe: won't throw TDZ/ReferenceError) ---
-let supabaseClient = null;
-
-(function initSupabaseClient(){
-  // detect available createClient function (supports different CDN exports)
-  const createFn =
-    (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') ? supabase.createClient
-    : (typeof window.supabaseJs !== 'undefined' && typeof window.supabaseJs.createClient === 'function') ? window.supabaseJs.createClient
-    : (typeof window.supabase_io !== 'undefined' && typeof window.supabase_io.createClient === 'function') ? window.supabase_io.createClient
-    : null;
-
-  if (!createFn) {
-    console.error('Supabase client library tidak ditemukan. Pastikan CDN <script> @supabase/supabase-js dimuat sebelum script ini.');
-    const noteEl = document.getElementById('note');
-    if(noteEl) noteEl.textContent = 'Supabase library tidak ditemukan. Periksa tag <script> CDN.';
-    return;
+// Init supabase client (expect global from CDN)
+let supabase = null;
+try {
+  if (window && window.supabase && typeof window.supabase.createClient === 'function') {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    console.error('Supabase library tidak ditemukan pada window.supabase');
+    document.getElementById('note').textContent = 'Supabase library tidak ditemukan. Periksa CDN script.';
   }
-
-  try {
-    supabaseClient = createFn(SUPABASE_URL, SUPABASE_ANON_KEY);
-    // quick sanity check
-    if(!supabaseClient || typeof supabaseClient.from !== 'function'){
-      console.error('Inisialisasi supabaseClient gagal atau object tidak valid', supabaseClient);
-      document.getElementById('note').textContent = 'Gagal inisialisasi Supabase client.';
-      supabaseClient = null;
-    }
-  } catch (err) {
-    console.error('Error saat inisialisasi Supabase client:', err);
-    document.getElementById('note').textContent = 'Error inisialisasi Supabase (lihat console).';
-    supabaseClient = null;
-  }
-})();
+} catch (err) {
+  console.error('Error inisialisasi supabase:', err);
+  document.getElementById('note').textContent = 'Error inisialisasi Supabase (lihat console).';
+}
 
 const $ = q => document.querySelector(q);
 
@@ -258,35 +242,31 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function severityPill(s){ const map={LOW:['Rendah','low'],MED:['Sedang','med'],HIGH:['Tinggi','high'],CRIT:['Kritis','crit']}; const [t,c]=map[s]||[s,'']; return `<span class="pill ${c}">${t}</span>`; }
 function statusPill(s){ const map={OPEN:['Dilaporkan','status-open'],IN_PROGRESS:['Diproses','status-progress'],DONE:['Selesai','status-done']}; const [t,c]=map[s]||[s,'']; return `<span class="pill ${c}">${t}</span>`; }
 
-let DB = []; // in-memory cache for UI
-const TABLE = 'reports'; // nama tabel Supabase
+let DB = []; // in-memory cache
+const TABLE = 'reports';
 
-/* ===============================
-   Helper: ensure client ready
-   =============================== */
+// Helper: ensure client ready
 function ensureClientOrThrow(){
-  if(!supabaseClient){
-    throw new Error('Supabase client belum siap. Periksa konfigurasi CDN/keys.');
-  }
+  if(!supabase) throw new Error('Supabase client belum siap. Periksa konfigurasi CDN/keys.');
 }
 
 /* ===============================
-   Load semua laporan (GET)
+   LOAD semua laporan (GET)
    =============================== */
 async function loadReportsFromSupabase(){
   try{
     $('#note').textContent = 'Memuat data dari Supabase...';
     ensureClientOrThrow();
 
-    // SELECT * FROM reports ORDER BY created_at DESC
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabase
       .from(TABLE)
       .select('*')
       .order('created_at', { ascending: false });
 
     if(error) throw error;
-    DB = (data || []).map(r => (({
-      id: r.id || '',
+
+    DB = (data || []).map(r => ({
+      id: (r.id === undefined || r.id === null) ? '' : String(r.id),
       location: r.location || '',
       equipment: r.equipment || '',
       dateFound: r.date_found || r.dateFound || '',
@@ -298,10 +278,11 @@ async function loadReportsFromSupabase(){
       notes: r.notes || '',
       createdAt: r.created_at || r.createdAt || '',
       updatedAt: r.updated_at || r.updatedAt || ''
-    })));
+    }));
+
     render();
     $('#note').textContent = 'Data dimuat dari Supabase.';
-  }catch(err){
+  } catch(err){
     console.error('loadReports error', err);
     $('#note').textContent = 'Gagal memuat data dari Supabase. Periksa config, RLS policy, atau lihat console.';
     DB = [];
@@ -310,19 +291,14 @@ async function loadReportsFromSupabase(){
 }
 
 /* ===============================
-   Insert laporan (POST)
-   ===============================
-   Insert OR Update laporan (POST/PUT)
-   NOTE: gunakan supabaseClient (bukan supabase)
-*/
+   SAVE (INSERT atau UPDATE)
+   =============================== */
 async function saveReportToSupabase(report){
   try{
     ensureClientOrThrow();
-
     $('#btnSubmit').disabled = true;
     $('#btnSubmit').textContent = report.id ? 'Memperbarui...' : 'Menyimpan...';
 
-    // mapping field names ke kolom DB (snake_case)
     const payload = {
       location: report.location || '',
       equipment: report.equipment || '',
@@ -335,36 +311,32 @@ async function saveReportToSupabase(report){
       notes: report.notes || ''
     };
 
-    let res;
     if (report.id) {
-      // UPDATE existing row -> gunakan supabaseClient
-      const { data, error } = await supabaseClient
+      // UPDATE
+      const { data, error } = await supabase
         .from(TABLE)
         .update(payload)
         .eq('id', report.id)
-        .select(); // ambil baris yg diupdate (opsional)
+        .select();
 
-      if (error) throw error;
-      res = data;
+      if(error) throw error;
       alert('Laporan berhasil diperbarui.');
+      return data;
     } else {
-      // INSERT new row -> gunakan supabaseClient
-      const { data, error } = await supabaseClient
+      // INSERT
+      const { data, error } = await supabase
         .from(TABLE)
         .insert([payload])
-        .select(); // return inserted row(s)
+        .select();
 
-      if (error) throw error;
-      res = data;
+      if(error) throw error;
       alert('Laporan berhasil dikirim.');
+      return data;
     }
-
-    // reload daftar
-    await loadReportsFromSupabase();
-    return res;
   } catch(err){
     console.error('saveReport error', err);
-    alert('Gagal menyimpan/perbarui laporan. Lihat console untuk detail.');
+    // Jika RLS menolak, error akan muncul di sini
+    alert('Gagal menyimpan/perbarui laporan. Lihat console (RLS mungkin memblokir operasi).');
     throw err;
   } finally {
     $('#btnSubmit').disabled = false;
@@ -373,22 +345,44 @@ async function saveReportToSupabase(report){
 }
 
 /* ===============================
-   Render tabel & statistik
+   DELETE
+   =============================== */
+async function deleteReport(id){
+  try{
+    ensureClientOrThrow();
+    const { data, error } = await supabase
+      .from(TABLE)
+      .delete()
+      .eq('id', id);
+
+    if(error) throw error;
+    // reload
+    await loadReportsFromSupabase();
+    alert('Baris berhasil dihapus.');
+  } catch(err){
+    console.error('delete error', err);
+    alert('Gagal menghapus baris. Periksa policy RLS atau lihat console.');
+  }
+}
+
+/* ===============================
+   RENDER tabel dan statistik
    =============================== */
 function render(){
   const tbody = $('#table tbody');
   const q = ($('#search') ? $('#search').value.trim().toLowerCase() : '');
   const rows = DB.filter(r => {
     if(!q) return true;
-    return String(r.equipment||'').toLowerCase().includes(q) ||
+    return (String(r.equipment||'').toLowerCase().includes(q) ||
            String(r.reporter||'').toLowerCase().includes(q) ||
-           String(r.description||'').toLowerCase().includes(q);
+           String(r.description||'').toLowerCase().includes(q));
   });
 
+  // build html rows (but keep data-id as raw id)
   tbody.innerHTML = rows.map(r => {
     const idDisplay = (r.serial && String(r.serial).trim()) ? esc(r.serial) : esc(r.id);
     const desc = esc(String(r.description||''));
-    return `<tr>
+    return `<tr data-id="${esc(r.id)}">
       <td>${esc(r.equipment)}</td>
       <td>${fmtDate(r.dateFound)}</td>
       <td>${esc(r.reporter)}</td>
@@ -396,9 +390,9 @@ function render(){
       <td>${statusPill(r.status)}</td>
       <td class="desc-cell" title="${desc}">${desc}</td>
       <td class="id-cell">${idDisplay}</td>
-      <td>
-        <button class="btn-soft" onclick="onEdit('${esc(r.id)}')">Ubah</button>
-        <button class="btn-danger" onclick="onDelete('${esc(r.id)}')">Hapus</button>
+      <td class="actions-col">
+        <button class="btn-action btn-edit">Ubah</button>
+        <button class="btn-action btn-delete">Hapus</button>
       </td>
     </tr>`;
   }).join('');
@@ -415,8 +409,7 @@ function render(){
 function todayYYYYMMDD(){ const t=new Date(); const y=t.getFullYear(), m=String(t.getMonth()+1).padStart(2,'0'), d=String(t.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
 function clearForm(){ const f = document.getElementById('reportForm'); if(f) f.reset(); $('#editId').value=''; $('#formMode').textContent=''; $('#btnSubmit').textContent='Simpan Laporan'; $('#dateFound').value = todayYYYYMMDD(); }
 
-function onEdit(id){
-  const r = DB.find(x=>x.id===id); if(!r) return;
+function fillFormWithReport(r){
   $('#equipment').value = r.equipment || '';
   $('#dateFound').value = r.dateFound || '';
   $('#reporter').value = r.reporter || '';
@@ -426,33 +419,18 @@ function onEdit(id){
   $('#description').value = r.description || '';
   $('#notes').value = r.notes || '';
   $('#editId').value = r.id || '';
-  $('#formMode').textContent = 'Mode: Ubah (setelah Simpan, baris baru akan ditambahkan)';
+  $('#formMode').textContent = 'Mode: Ubah (simpan untuk memperbarui)';
   $('#btnSubmit').textContent = 'Perbarui Laporan';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-/* Delete: jika mau hapus langsung via API (butuh policy DELETE) */
-async function onDelete(id){
-  if(!confirm('Hapus laporan ini dari database?')) return;
-  try{
-    ensureClientOrThrow();
-    const { data, error } = await supabaseClient.from(TABLE).delete().eq('id', id);
-    if(error) throw error;
-    await loadReportsFromSupabase();
-    alert('Baris berhasil dihapus.');
-  }catch(err){
-    console.error('delete error', err);
-    alert('Gagal hapus. Periksa policy RLS atau lihat console.');
-  }
-}
-
 /* ===============================
-   Binding form submit -> POST
+   Event binding
    =============================== */
 document.getElementById('reportForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const data = {
-    id: $('#editId').value || null, // kalau null => insert; kalau ada => update
+    id: $('#editId').value || null,
     location: 'Pos Meteorologi 96745 Kemayoran',
     equipment: $('#equipment').value.trim(),
     dateFound: $('#dateFound').value || null,
@@ -477,10 +455,11 @@ document.getElementById('reportForm').addEventListener('submit', async (e)=>{
   }
 });
 
-/* search + export + clear */
+// search
 const searchEl = document.getElementById('search');
 if(searchEl) searchEl.addEventListener('input', render);
 
+// export CSV
 const btnExport = document.getElementById('btnExportCSV');
 if(btnExport) btnExport.addEventListener('click', ()=>{
   const cols = ['id','location','equipment','dateFound','reporter','serial','severity','status','description','notes','createdAt','updatedAt'];
@@ -496,14 +475,48 @@ if(btnExport) btnExport.addEventListener('click', ()=>{
   document.body.appendChild(a); a.click(); a.remove();
 });
 
+// clear view (only UI)
 const btnClear = document.getElementById('btnClearAll');
 if(btnClear) btnClear.addEventListener('click', ()=>{
   if(!confirm('Ini hanya akan mengosongkan tampilan (data asli di Supabase tetap ada). Lanjutkan?')) return;
   DB = []; render();
 });
 
+// reset form
 const btnReset = document.getElementById('btnReset');
 if(btnReset) btnReset.addEventListener('click', clearForm);
+
+// event delegation untuk Edit / Delete
+const tbody = document.querySelector('#table tbody');
+tbody.addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button');
+  if(!btn) return;
+  const tr = btn.closest('tr');
+  if(!tr) return;
+  const id = tr.dataset.id;
+  if(!id){
+    console.warn('ID tidak ditemukan untuk baris ini');
+    return;
+  }
+
+  if(btn.classList.contains('btn-delete')){
+    // hapus
+    if(!confirm('Hapus laporan ini dari database?')) return;
+    await deleteReport(id);
+    return;
+  }
+
+  if(btn.classList.contains('btn-edit')){
+    // isi form utk ubah
+    const r = DB.find(x => String(x.id) === String(id));
+    if(!r){
+      alert('Baris tidak ditemukan di cache (refresh halaman).');
+      return;
+    }
+    fillFormWithReport(r);
+    return;
+  }
+});
 
 /* ===============================
    Init
@@ -517,10 +530,8 @@ if(btnReset) btnReset.addEventListener('click', clearForm);
     return;
   }
 
-  // if supabaseClient ready -> load, otherwise show warning
-  if(supabaseClient){
+  if(supabase){
     loadReportsFromSupabase();
-    // poll every 20s to get new reports (or use realtime later)
     setInterval(()=>{ loadReportsFromSupabase().catch(()=>{}); }, 20000);
   } else {
     $('#note').textContent = 'Supabase client belum siap — periksa CDN atau kunci. Lihat console untuk detail.';
